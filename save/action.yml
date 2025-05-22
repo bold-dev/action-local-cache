@@ -1,0 +1,16 @@
+name: 'local-cache-save'
+description: "Save files to a local cache on the runner's file system"
+inputs:
+  key:
+    description: 'An explicit key for versioning the cache'
+    required: false
+  path:
+    description: 'The file(s) or folder(s) to be cached. Can be a single path or multiline paths.'
+    required: true
+  strategy:
+    description: 'Caching mechanism to be used'
+    required: false
+    default: 'move'
+runs:
+  using: 'node16'
+  main: '../dist/post.js'

@@ -1,12 +1,11 @@
-
-name: 'local-cache'
-description: "A Github Action to save and restore files across job runs directly in the runner's file system"
+name: 'local-cache-restore'
+description: "Restore files from a local cache on the runner's file system"
 inputs:
   key:
     description: 'An explicit key for versioning the cache'
     required: false
   path:
-    description: 'The file(s) or folder(s) to be cached. Can be a single path or multiline paths.'
+    description: 'The file(s) or folder(s) to restore from cache. Can be a single path or multiline paths.'
     required: true
   restore-keys:
     description: 'An ordered list of keys to use for restoring the cache if no cache hit occurred for key'
@@ -22,9 +21,4 @@ outputs:
     description: 'The key that was used to restore the cache (can be primary key or one of the restore-keys)'
 runs:
   using: 'node16'
-  main: 'dist/main.js'
-  post: 'dist/post.js'
-  post-if: success()
-branding:
-  icon: 'archive'
-  color: 'blue'
+  main: '../dist/main.js'
