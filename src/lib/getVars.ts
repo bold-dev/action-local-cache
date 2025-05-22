@@ -8,16 +8,21 @@ const CWD = process.cwd()
 export const STRATEGIES = ['copy-immutable', 'copy', 'move'] as const
 export type Strategy = typeof STRATEGIES[number]
 
-type Vars = {
-  cacheDir: string
+export type PathItem = {
   cachePath: string
-  options: {
-    key: string
-    path: string,
-    strategy: Strategy
-  }
   targetDir: string
   targetPath: string
+}
+
+type Vars = {
+  cacheDir: string
+  options: {
+    key: string
+    paths: string[]
+    restoreKeys: string[]
+    strategy: Strategy
+  }
+  pathItems: PathItem[]
 }
 
 export const getVars = (): Vars => {
@@ -31,12 +36,19 @@ export const getVars = (): Vars => {
 
   const options = {
     key: core.getInput('key') || 'no-key',
-    path: core.getInput('path'),
+    paths: core.getMultilineInput('path'),
+    restoreKeys: core.getMultilineInput('restore-keys'),
     strategy: core.getInput('strategy') as Strategy,
   }
 
-  if (!options.path) {
-    throw new TypeError('path is required but was not provided.')
+  if (options.paths.length === 0) {
+    // For backward compatibility, try the singular 'path' input
+    const singlePath = core.getInput('path')
+    if (singlePath) {
+      options.paths = [singlePath]
+    } else {
+      throw new TypeError('path is required but was not provided.')
+    }
   }
 
   if (!Object.values(STRATEGIES).includes(options.strategy)) {
@@ -44,15 +56,22 @@ export const getVars = (): Vars => {
   }
 
   const cacheDir = path.join(RUNNER_TOOL_CACHE, GITHUB_REPOSITORY, options.key)
-  const cachePath = path.join(cacheDir, options.path)
-  const targetPath = path.resolve(CWD, options.path)
-  const { dir: targetDir } = path.parse(targetPath)
+  
+  const pathItems: PathItem[] = options.paths.map(pathStr => {
+    const targetPath = path.resolve(CWD, pathStr)
+    const cachePath = path.join(cacheDir, pathStr)
+    const { dir: targetDir } = path.parse(targetPath)
+    
+    return {
+      cachePath,
+      targetDir,
+      targetPath
+    }
+  })
 
   return {
     cacheDir,
-    cachePath,
     options,
-    targetDir,
-    targetPath,
+    pathItems
   }
 }

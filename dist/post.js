@@ -1959,7 +1959,7 @@ var require_path_utils = __commonJS({
     };
     Object.defineProperty(exports, "__esModule", { value: true });
     exports.toPlatformPath = exports.toWin32Path = exports.toPosixPath = void 0;
-    var path2 = __importStar(__require("path"));
+    var path3 = __importStar(__require("path"));
     function toPosixPath(pth) {
       return pth.replace(/[\\]/g, "/");
     }
@@ -1969,7 +1969,7 @@ var require_path_utils = __commonJS({
     }
     exports.toWin32Path = toWin32Path;
     function toPlatformPath(pth) {
-      return pth.replace(/[/\\]/g, path2.sep);
+      return pth.replace(/[/\\]/g, path3.sep);
     }
     exports.toPlatformPath = toPlatformPath;
   }
@@ -2039,7 +2039,7 @@ var require_core = __commonJS({
     var file_command_1 = require_file_command();
     var utils_1 = require_utils();
     var os = __importStar(__require("os"));
-    var path2 = __importStar(__require("path"));
+    var path3 = __importStar(__require("path"));
     var oidc_utils_1 = require_oidc_utils();
     var ExitCode;
     (function(ExitCode2) {
@@ -2067,10 +2067,10 @@ var require_core = __commonJS({
       } else {
         command_1.issueCommand("add-path", {}, inputPath);
       }
-      process.env["PATH"] = `${inputPath}${path2.delimiter}${process.env["PATH"]}`;
+      process.env["PATH"] = `${inputPath}${path3.delimiter}${process.env["PATH"]}`;
     }
     exports.addPath = addPath;
-    function getInput2(name, options) {
+    function getInput3(name, options) {
       const val = process.env[`INPUT_${name.replace(/ /g, "_").toUpperCase()}`] || "";
       if (options && options.required && !val) {
         throw new Error(`Input required and not supplied: ${name}`);
@@ -2080,19 +2080,19 @@ var require_core = __commonJS({
       }
       return val.trim();
     }
-    exports.getInput = getInput2;
-    function getMultilineInput(name, options) {
-      const inputs = getInput2(name, options).split("\n").filter((x) => x !== "");
+    exports.getInput = getInput3;
+    function getMultilineInput2(name, options) {
+      const inputs = getInput3(name, options).split("\n").filter((x) => x !== "");
       if (options && options.trimWhitespace === false) {
         return inputs;
       }
       return inputs.map((input) => input.trim());
     }
-    exports.getMultilineInput = getMultilineInput;
+    exports.getMultilineInput = getMultilineInput2;
     function getBooleanInput(name, options) {
       const trueValue = ["true", "True", "TRUE"];
       const falseValue = ["false", "False", "FALSE"];
-      const val = getInput2(name, options);
+      const val = getInput3(name, options);
       if (trueValue.includes(val))
         return true;
       if (falseValue.includes(val))
@@ -2265,7 +2265,7 @@ var require_io_util = __commonJS({
     Object.defineProperty(exports, "__esModule", { value: true });
     exports.getCmdPath = exports.tryGetExecutablePath = exports.isRooted = exports.isDirectory = exports.exists = exports.READONLY = exports.UV_FS_O_EXLOCK = exports.IS_WINDOWS = exports.unlink = exports.symlink = exports.stat = exports.rmdir = exports.rm = exports.rename = exports.readlink = exports.readdir = exports.open = exports.mkdir = exports.lstat = exports.copyFile = exports.chmod = void 0;
     var fs = __importStar(__require("fs"));
-    var path2 = __importStar(__require("path"));
+    var path3 = __importStar(__require("path"));
     _a = fs.promises, exports.chmod = _a.chmod, exports.copyFile = _a.copyFile, exports.lstat = _a.lstat, exports.mkdir = _a.mkdir, exports.open = _a.open, exports.readdir = _a.readdir, exports.readlink = _a.readlink, exports.rename = _a.rename, exports.rm = _a.rm, exports.rmdir = _a.rmdir, exports.stat = _a.stat, exports.symlink = _a.symlink, exports.unlink = _a.unlink;
     exports.IS_WINDOWS = process.platform === "win32";
     exports.UV_FS_O_EXLOCK = 268435456;
@@ -2314,7 +2314,7 @@ var require_io_util = __commonJS({
         }
         if (stats && stats.isFile()) {
           if (exports.IS_WINDOWS) {
-            const upperExt = path2.extname(filePath).toUpperCase();
+            const upperExt = path3.extname(filePath).toUpperCase();
             if (extensions.some((validExt) => validExt.toUpperCase() === upperExt)) {
               return filePath;
             }
@@ -2338,11 +2338,11 @@ var require_io_util = __commonJS({
           if (stats && stats.isFile()) {
             if (exports.IS_WINDOWS) {
               try {
-                const directory = path2.dirname(filePath);
-                const upperName = path2.basename(filePath).toUpperCase();
+                const directory = path3.dirname(filePath);
+                const upperName = path3.basename(filePath).toUpperCase();
                 for (const actualName of yield exports.readdir(directory)) {
                   if (upperName === actualName.toUpperCase()) {
-                    filePath = path2.join(directory, actualName);
+                    filePath = path3.join(directory, actualName);
                     break;
                   }
                 }
@@ -2441,7 +2441,7 @@ var require_io = __commonJS({
     Object.defineProperty(exports, "__esModule", { value: true });
     exports.findInPath = exports.which = exports.mkdirP = exports.rmRF = exports.mv = exports.cp = void 0;
     var assert_1 = __require("assert");
-    var path2 = __importStar(__require("path"));
+    var path3 = __importStar(__require("path"));
     var ioUtil = __importStar(require_io_util());
     function cp2(source, dest, options = {}) {
       return __awaiter(this, void 0, void 0, function* () {
@@ -2450,7 +2450,7 @@ var require_io = __commonJS({
         if (destStat && destStat.isFile() && !force) {
           return;
         }
-        const newDest = destStat && destStat.isDirectory() && copySourceDirectory ? path2.join(dest, path2.basename(source)) : dest;
+        const newDest = destStat && destStat.isDirectory() && copySourceDirectory ? path3.join(dest, path3.basename(source)) : dest;
         if (!(yield ioUtil.exists(source))) {
           throw new Error(`no such file or directory: ${source}`);
         }
@@ -2462,7 +2462,7 @@ var require_io = __commonJS({
             yield cpDirRecursive(source, newDest, 0, force);
           }
         } else {
-          if (path2.relative(source, newDest) === "") {
+          if (path3.relative(source, newDest) === "") {
             throw new Error(`'${newDest}' and '${source}' are the same file`);
           }
           yield copyFile(source, newDest, force);
@@ -2475,7 +2475,7 @@ var require_io = __commonJS({
         if (yield ioUtil.exists(dest)) {
           let destExists = true;
           if (yield ioUtil.isDirectory(dest)) {
-            dest = path2.join(dest, path2.basename(source));
+            dest = path3.join(dest, path3.basename(source));
             destExists = yield ioUtil.exists(dest);
           }
           if (destExists) {
@@ -2486,7 +2486,7 @@ var require_io = __commonJS({
             }
           }
         }
-        yield mkdirP2(path2.dirname(dest));
+        yield mkdirP2(path3.dirname(dest));
         yield ioUtil.rename(source, dest);
       });
     }
@@ -2549,7 +2549,7 @@ var require_io = __commonJS({
         }
         const extensions = [];
         if (ioUtil.IS_WINDOWS && process.env["PATHEXT"]) {
-          for (const extension of process.env["PATHEXT"].split(path2.delimiter)) {
+          for (const extension of process.env["PATHEXT"].split(path3.delimiter)) {
             if (extension) {
               extensions.push(extension);
             }
@@ -2562,12 +2562,12 @@ var require_io = __commonJS({
           }
           return [];
         }
-        if (tool.includes(path2.sep)) {
+        if (tool.includes(path3.sep)) {
           return [];
         }
         const directories = [];
         if (process.env.PATH) {
-          for (const p of process.env.PATH.split(path2.delimiter)) {
+          for (const p of process.env.PATH.split(path3.delimiter)) {
             if (p) {
               directories.push(p);
             }
@@ -2575,7 +2575,7 @@ var require_io = __commonJS({
         }
         const matches = [];
         for (const directory of directories) {
-          const filePath = yield ioUtil.tryGetExecutablePath(path2.join(directory, tool), extensions);
+          const filePath = yield ioUtil.tryGetExecutablePath(path3.join(directory, tool), extensions);
           if (filePath) {
             matches.push(filePath);
           }
@@ -2863,6 +2863,7 @@ var require_loglevel = __commonJS({
 // src/post.ts
 var import_core = __toESM(require_core());
 var import_io = __toESM(require_io());
+var import_io_util = __toESM(require_io_util());
 
 // src/lib/getVars.ts
 var core = __toESM(require_core());
@@ -2878,25 +2879,36 @@ var getVars = () => {
   }
   const options = {
     key: core.getInput("key") || "no-key",
-    path: core.getInput("path"),
+    paths: core.getMultilineInput("path"),
+    restoreKeys: core.getMultilineInput("restore-keys"),
     strategy: core.getInput("strategy")
   };
-  if (!options.path) {
-    throw new TypeError("path is required but was not provided.");
+  if (options.paths.length === 0) {
+    const singlePath = core.getInput("path");
+    if (singlePath) {
+      options.paths = [singlePath];
+    } else {
+      throw new TypeError("path is required but was not provided.");
+    }
   }
   if (!Object.values(STRATEGIES).includes(options.strategy)) {
     throw new TypeError(`Unknown strategy ${options.strategy}`);
   }
   const cacheDir = path__default.default.join(RUNNER_TOOL_CACHE, GITHUB_REPOSITORY, options.key);
-  const cachePath = path__default.default.join(cacheDir, options.path);
-  const targetPath = path__default.default.resolve(CWD, options.path);
-  const { dir: targetDir } = path__default.default.parse(targetPath);
+  const pathItems = options.paths.map((pathStr) => {
+    const targetPath = path__default.default.resolve(CWD, pathStr);
+    const cachePath = path__default.default.join(cacheDir, pathStr);
+    const { dir: targetDir } = path__default.default.parse(targetPath);
+    return {
+      cachePath,
+      targetDir,
+      targetPath
+    };
+  });
   return {
     cacheDir,
-    cachePath,
     options,
-    targetDir,
-    targetPath
+    pathItems
   };
 };
 
@@ -2919,30 +2931,50 @@ if (process.env.LOG_LEVEL) {
   import_loglevel.default.setLevel(process.env.LOG_LEVEL);
 }
 var log_default = import_loglevel.default;
-
-// src/post.ts
-var import_io_util = __toESM(require_io_util());
+async function processPathItem(pathItem, cacheDir, strategy) {
+  const { targetPath, cachePath } = pathItem;
+  const cacheParentDir = path__default.default.dirname(cachePath);
+  await (0, import_io.mkdirP)(cacheParentDir);
+  switch (strategy) {
+    case "copy-immutable":
+      if (await (0, import_io_util.exists)(cachePath)) {
+        log_default.info(`Cache already exists for ${targetPath}, skipping`);
+        return;
+      }
+      await (0, import_io.cp)(targetPath, cachePath, { copySourceDirectory: true, recursive: true });
+      break;
+    case "copy":
+      if (await (0, import_io_util.exists)(cachePath)) {
+        await (0, import_io.rmRF)(cachePath);
+      }
+      await (0, import_io.cp)(targetPath, cachePath, { copySourceDirectory: true, recursive: true });
+      break;
+    case "move":
+      await (0, import_io.mv)(targetPath, cachePath, { force: true });
+      break;
+  }
+  log_default.info(`Cache saved to ${cachePath} with ${strategy} strategy`);
+}
 async function post() {
   try {
-    const { cacheDir, targetPath, cachePath, options } = getVars();
+    const { cacheDir, pathItems, options } = getVars();
+    log_default.info(`Saving cache with primary key: ${options.key}`);
     await (0, import_io.mkdirP)(cacheDir);
-    switch (options.strategy) {
-      case "copy-immutable":
-        if (await (0, import_io_util.exists)(cachePath)) {
-          log_default.info(`Cache already exists, skipping`);
-          return;
+    let processedCount = 0;
+    const totalPaths = pathItems.length;
+    for (const pathItem of pathItems) {
+      try {
+        if (await (0, import_io_util.exists)(pathItem.targetPath)) {
+          await processPathItem(pathItem, cacheDir, options.strategy);
+          processedCount++;
+        } else {
+          log_default.info(`Path ${pathItem.targetPath} does not exist, skipping cache`);
         }
-        await (0, import_io.cp)(targetPath, cachePath, { copySourceDirectory: true, recursive: true });
-        break;
-      case "copy":
-        await (0, import_io.rmRF)(cachePath);
-        await (0, import_io.cp)(targetPath, cachePath, { copySourceDirectory: true, recursive: true });
-        break;
-      case "move":
-        await (0, import_io.mv)(targetPath, cachePath, { force: true });
-        break;
+      } catch (itemError) {
+        log_default.error(`Error processing ${pathItem.targetPath}: ${isErrorLike(itemError) ? itemError.message : "unknown error"}`);
+      }
     }
-    log_default.info(`Cache saved to ${cachePath} with ${options.strategy} strategy`);
+    log_default.info(`Cache saving complete. ${processedCount}/${totalPaths} paths were cached with key: ${options.key}`);
   } catch (error) {
     log_default.trace(error);
     (0, import_core.setFailed)(isErrorLike(error) ? error.message : `unknown error: ${error}`);

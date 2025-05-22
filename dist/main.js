@@ -1,12 +1,32 @@
 'use strict';
 
 var crypto = require('crypto');
-var path = require('path');
+var fs = require('fs');
+var path2 = require('path');
 
 function _interopDefault (e) { return e && e.__esModule ? e : { default: e }; }
 
+function _interopNamespace(e) {
+  if (e && e.__esModule) return e;
+  var n = Object.create(null);
+  if (e) {
+    Object.keys(e).forEach(function (k) {
+      if (k !== 'default') {
+        var d = Object.getOwnPropertyDescriptor(e, k);
+        Object.defineProperty(n, k, d.get ? d : {
+          enumerable: true,
+          get: function () { return e[k]; }
+        });
+      }
+    });
+  }
+  n.default = e;
+  return Object.freeze(n);
+}
+
 var crypto__default = /*#__PURE__*/_interopDefault(crypto);
-var path__default = /*#__PURE__*/_interopDefault(path);
+var fs__namespace = /*#__PURE__*/_interopNamespace(fs);
+var path2__namespace = /*#__PURE__*/_interopNamespace(path2);
 
 var __create = Object.create;
 var __defProp = Object.defineProperty;
@@ -523,7 +543,7 @@ var require_file_command = __commonJS({
     };
     Object.defineProperty(exports, "__esModule", { value: true });
     exports.prepareKeyValueMessage = exports.issueFileCommand = void 0;
-    var fs = __importStar(__require("fs"));
+    var fs2 = __importStar(__require("fs"));
     var os = __importStar(__require("os"));
     var uuid_1 = (init_esm_node(), __toCommonJS(esm_node_exports));
     var utils_1 = require_utils();
@@ -532,10 +552,10 @@ var require_file_command = __commonJS({
       if (!filePath) {
         throw new Error(`Unable to find environment variable for file command ${command}`);
       }
-      if (!fs.existsSync(filePath)) {
+      if (!fs2.existsSync(filePath)) {
         throw new Error(`Missing file at path: ${filePath}`);
       }
-      fs.appendFileSync(filePath, `${utils_1.toCommandValue(message)}${os.EOL}`, {
+      fs2.appendFileSync(filePath, `${utils_1.toCommandValue(message)}${os.EOL}`, {
         encoding: "utf8"
       });
     }
@@ -1959,7 +1979,7 @@ var require_path_utils = __commonJS({
     };
     Object.defineProperty(exports, "__esModule", { value: true });
     exports.toPlatformPath = exports.toWin32Path = exports.toPosixPath = void 0;
-    var path2 = __importStar(__require("path"));
+    var path3 = __importStar(__require("path"));
     function toPosixPath(pth) {
       return pth.replace(/[\\]/g, "/");
     }
@@ -1969,7 +1989,7 @@ var require_path_utils = __commonJS({
     }
     exports.toWin32Path = toWin32Path;
     function toPlatformPath(pth) {
-      return pth.replace(/[/\\]/g, path2.sep);
+      return pth.replace(/[/\\]/g, path3.sep);
     }
     exports.toPlatformPath = toPlatformPath;
   }
@@ -2039,7 +2059,7 @@ var require_core = __commonJS({
     var file_command_1 = require_file_command();
     var utils_1 = require_utils();
     var os = __importStar(__require("os"));
-    var path2 = __importStar(__require("path"));
+    var path3 = __importStar(__require("path"));
     var oidc_utils_1 = require_oidc_utils();
     var ExitCode;
     (function(ExitCode2) {
@@ -2067,7 +2087,7 @@ var require_core = __commonJS({
       } else {
         command_1.issueCommand("add-path", {}, inputPath);
       }
-      process.env["PATH"] = `${inputPath}${path2.delimiter}${process.env["PATH"]}`;
+      process.env["PATH"] = `${inputPath}${path3.delimiter}${process.env["PATH"]}`;
     }
     exports.addPath = addPath;
     function getInput2(name, options) {
@@ -2081,14 +2101,14 @@ var require_core = __commonJS({
       return val.trim();
     }
     exports.getInput = getInput2;
-    function getMultilineInput(name, options) {
+    function getMultilineInput2(name, options) {
       const inputs = getInput2(name, options).split("\n").filter((x) => x !== "");
       if (options && options.trimWhitespace === false) {
         return inputs;
       }
       return inputs.map((input) => input.trim());
     }
-    exports.getMultilineInput = getMultilineInput;
+    exports.getMultilineInput = getMultilineInput2;
     function getBooleanInput(name, options) {
       const trueValue = ["true", "True", "TRUE"];
       const falseValue = ["false", "False", "FALSE"];
@@ -2264,12 +2284,12 @@ var require_io_util = __commonJS({
     var _a;
     Object.defineProperty(exports, "__esModule", { value: true });
     exports.getCmdPath = exports.tryGetExecutablePath = exports.isRooted = exports.isDirectory = exports.exists = exports.READONLY = exports.UV_FS_O_EXLOCK = exports.IS_WINDOWS = exports.unlink = exports.symlink = exports.stat = exports.rmdir = exports.rm = exports.rename = exports.readlink = exports.readdir = exports.open = exports.mkdir = exports.lstat = exports.copyFile = exports.chmod = void 0;
-    var fs = __importStar(__require("fs"));
-    var path2 = __importStar(__require("path"));
-    _a = fs.promises, exports.chmod = _a.chmod, exports.copyFile = _a.copyFile, exports.lstat = _a.lstat, exports.mkdir = _a.mkdir, exports.open = _a.open, exports.readdir = _a.readdir, exports.readlink = _a.readlink, exports.rename = _a.rename, exports.rm = _a.rm, exports.rmdir = _a.rmdir, exports.stat = _a.stat, exports.symlink = _a.symlink, exports.unlink = _a.unlink;
+    var fs2 = __importStar(__require("fs"));
+    var path3 = __importStar(__require("path"));
+    _a = fs2.promises, exports.chmod = _a.chmod, exports.copyFile = _a.copyFile, exports.lstat = _a.lstat, exports.mkdir = _a.mkdir, exports.open = _a.open, exports.readdir = _a.readdir, exports.readlink = _a.readlink, exports.rename = _a.rename, exports.rm = _a.rm, exports.rmdir = _a.rmdir, exports.stat = _a.stat, exports.symlink = _a.symlink, exports.unlink = _a.unlink;
     exports.IS_WINDOWS = process.platform === "win32";
     exports.UV_FS_O_EXLOCK = 268435456;
-    exports.READONLY = fs.constants.O_RDONLY;
+    exports.READONLY = fs2.constants.O_RDONLY;
     function exists2(fsPath) {
       return __awaiter(this, void 0, void 0, function* () {
         try {
@@ -2314,7 +2334,7 @@ var require_io_util = __commonJS({
         }
         if (stats && stats.isFile()) {
           if (exports.IS_WINDOWS) {
-            const upperExt = path2.extname(filePath).toUpperCase();
+            const upperExt = path3.extname(filePath).toUpperCase();
             if (extensions.some((validExt) => validExt.toUpperCase() === upperExt)) {
               return filePath;
             }
@@ -2338,11 +2358,11 @@ var require_io_util = __commonJS({
           if (stats && stats.isFile()) {
             if (exports.IS_WINDOWS) {
               try {
-                const directory = path2.dirname(filePath);
-                const upperName = path2.basename(filePath).toUpperCase();
+                const directory = path3.dirname(filePath);
+                const upperName = path3.basename(filePath).toUpperCase();
                 for (const actualName of yield exports.readdir(directory)) {
                   if (upperName === actualName.toUpperCase()) {
-                    filePath = path2.join(directory, actualName);
+                    filePath = path3.join(directory, actualName);
                     break;
                   }
                 }
@@ -2441,7 +2461,7 @@ var require_io = __commonJS({
     Object.defineProperty(exports, "__esModule", { value: true });
     exports.findInPath = exports.which = exports.mkdirP = exports.rmRF = exports.mv = exports.cp = void 0;
     var assert_1 = __require("assert");
-    var path2 = __importStar(__require("path"));
+    var path3 = __importStar(__require("path"));
     var ioUtil = __importStar(require_io_util());
     function cp2(source, dest, options = {}) {
       return __awaiter(this, void 0, void 0, function* () {
@@ -2450,7 +2470,7 @@ var require_io = __commonJS({
         if (destStat && destStat.isFile() && !force) {
           return;
         }
-        const newDest = destStat && destStat.isDirectory() && copySourceDirectory ? path2.join(dest, path2.basename(source)) : dest;
+        const newDest = destStat && destStat.isDirectory() && copySourceDirectory ? path3.join(dest, path3.basename(source)) : dest;
         if (!(yield ioUtil.exists(source))) {
           throw new Error(`no such file or directory: ${source}`);
         }
@@ -2462,7 +2482,7 @@ var require_io = __commonJS({
             yield cpDirRecursive(source, newDest, 0, force);
           }
         } else {
-          if (path2.relative(source, newDest) === "") {
+          if (path3.relative(source, newDest) === "") {
             throw new Error(`'${newDest}' and '${source}' are the same file`);
           }
           yield copyFile(source, newDest, force);
@@ -2475,7 +2495,7 @@ var require_io = __commonJS({
         if (yield ioUtil.exists(dest)) {
           let destExists = true;
           if (yield ioUtil.isDirectory(dest)) {
-            dest = path2.join(dest, path2.basename(source));
+            dest = path3.join(dest, path3.basename(source));
             destExists = yield ioUtil.exists(dest);
           }
           if (destExists) {
@@ -2486,7 +2506,7 @@ var require_io = __commonJS({
             }
           }
         }
-        yield mkdirP2(path2.dirname(dest));
+        yield mkdirP2(path3.dirname(dest));
         yield ioUtil.rename(source, dest);
       });
     }
@@ -2549,7 +2569,7 @@ var require_io = __commonJS({
         }
         const extensions = [];
         if (ioUtil.IS_WINDOWS && process.env["PATHEXT"]) {
-          for (const extension of process.env["PATHEXT"].split(path2.delimiter)) {
+          for (const extension of process.env["PATHEXT"].split(path3.delimiter)) {
             if (extension) {
               extensions.push(extension);
             }
@@ -2562,12 +2582,12 @@ var require_io = __commonJS({
           }
           return [];
         }
-        if (tool.includes(path2.sep)) {
+        if (tool.includes(path3.sep)) {
           return [];
         }
         const directories = [];
         if (process.env.PATH) {
-          for (const p of process.env.PATH.split(path2.delimiter)) {
+          for (const p of process.env.PATH.split(path3.delimiter)) {
             if (p) {
               directories.push(p);
             }
@@ -2575,7 +2595,7 @@ var require_io = __commonJS({
         }
         const matches = [];
         for (const directory of directories) {
-          const filePath = yield ioUtil.tryGetExecutablePath(path2.join(directory, tool), extensions);
+          const filePath = yield ioUtil.tryGetExecutablePath(path3.join(directory, tool), extensions);
           if (filePath) {
             matches.push(filePath);
           }
@@ -2879,25 +2899,36 @@ var getVars = () => {
   }
   const options = {
     key: core.getInput("key") || "no-key",
-    path: core.getInput("path"),
+    paths: core.getMultilineInput("path"),
+    restoreKeys: core.getMultilineInput("restore-keys"),
     strategy: core.getInput("strategy")
   };
-  if (!options.path) {
-    throw new TypeError("path is required but was not provided.");
+  if (options.paths.length === 0) {
+    const singlePath = core.getInput("path");
+    if (singlePath) {
+      options.paths = [singlePath];
+    } else {
+      throw new TypeError("path is required but was not provided.");
+    }
   }
   if (!Object.values(STRATEGIES).includes(options.strategy)) {
     throw new TypeError(`Unknown strategy ${options.strategy}`);
   }
-  const cacheDir = path__default.default.join(RUNNER_TOOL_CACHE, GITHUB_REPOSITORY, options.key);
-  const cachePath = path__default.default.join(cacheDir, options.path);
-  const targetPath = path__default.default.resolve(CWD, options.path);
-  const { dir: targetDir } = path__default.default.parse(targetPath);
+  const cacheDir = path2__namespace.default.join(RUNNER_TOOL_CACHE, GITHUB_REPOSITORY, options.key);
+  const pathItems = options.paths.map((pathStr) => {
+    const targetPath = path2__namespace.default.resolve(CWD, pathStr);
+    const cachePath = path2__namespace.default.join(cacheDir, pathStr);
+    const { dir: targetDir } = path2__namespace.default.parse(targetPath);
+    return {
+      cachePath,
+      targetDir,
+      targetPath
+    };
+  });
   return {
     cacheDir,
-    cachePath,
     options,
-    targetDir,
-    targetPath
+    pathItems
   };
 };
 
@@ -2922,29 +2953,101 @@ if (process.env.LOG_LEVEL) {
 var log_default = import_loglevel.default;
 
 // src/main.ts
+async function processPathItem(pathItem, strategy) {
+  const { cachePath, targetDir, targetPath } = pathItem;
+  if (await (0, import_io_util.exists)(cachePath)) {
+    await (0, import_io.mkdirP)(targetDir);
+    switch (strategy) {
+      case "copy-immutable":
+      case "copy":
+        await (0, import_io.cp)(cachePath, targetPath, {
+          copySourceDirectory: false,
+          recursive: true
+        });
+        break;
+      case "move":
+        await (0, import_io.mv)(cachePath, targetPath, { force: true });
+        break;
+    }
+    log_default.info(`Cache found and restored to ${targetPath} with ${strategy} strategy`);
+    return true;
+  } else {
+    log_default.info(`Skipping: cache not found for ${targetPath}.`);
+    return false;
+  }
+}
+async function findMatchingCaches(baseCacheDir, keyPrefix) {
+  try {
+    const repoDir = path2__namespace.dirname(baseCacheDir);
+    if (!await (0, import_io_util.exists)(repoDir)) {
+      return [];
+    }
+    const dirents = await fs__namespace.promises.readdir(repoDir, { withFileTypes: true });
+    const matches = dirents.filter((dirent) => dirent.isDirectory() && dirent.name.startsWith(keyPrefix)).map((dirent) => dirent.name).sort((a, b) => {
+      return b.localeCompare(a);
+    });
+    return matches;
+  } catch (error) {
+    log_default.warn(
+      `Error finding matching caches: ${isErrorLike(error) ? error.message : "unknown error"}`
+    );
+    return [];
+  }
+}
+async function findValidCacheKey(baseCacheDir, primaryKey, restoreKeys) {
+  const primaryKeyDir = path2__namespace.join(baseCacheDir, primaryKey);
+  if (await (0, import_io_util.exists)(primaryKeyDir)) {
+    return primaryKey;
+  }
+  for (const restoreKey of restoreKeys) {
+    const matches = await findMatchingCaches(baseCacheDir, restoreKey);
+    if (matches.length > 0) {
+      return matches[0];
+    }
+  }
+  return null;
+}
 async function main() {
   try {
-    const { cachePath, targetDir, targetPath, options } = getVars();
-    if (await (0, import_io_util.exists)(cachePath)) {
-      await (0, import_io.mkdirP)(targetDir);
-      switch (options.strategy) {
-        case "copy-immutable":
-        case "copy":
-          await (0, import_io.cp)(cachePath, targetPath, {
-            copySourceDirectory: false,
-            recursive: true
-          });
-          break;
-        case "move":
-          await (0, import_io.mv)(cachePath, targetPath, { force: true });
-          break;
-      }
-      log_default.info(`Cache found and restored to ${options.path} with ${options.strategy} strategy`);
-      (0, import_core.setOutput)("cache-hit", true);
-    } else {
-      log_default.info(`Skipping: cache not found for ${options.path}.`);
-      (0, import_core.setOutput)("cache-hit", false);
+    const { pathItems, options } = getVars();
+    const { GITHUB_REPOSITORY: GITHUB_REPOSITORY2, RUNNER_TOOL_CACHE: RUNNER_TOOL_CACHE2 } = process.env;
+    if (!RUNNER_TOOL_CACHE2 || !GITHUB_REPOSITORY2) {
+      throw new Error("Required environment variables are missing");
     }
+    const repoBaseCacheDir = path2__namespace.join(RUNNER_TOOL_CACHE2, GITHUB_REPOSITORY2);
+    const validKey = await findValidCacheKey(repoBaseCacheDir, options.key, options.restoreKeys);
+    if (!validKey) {
+      log_default.info(`No valid cache key found for key: ${options.key} or restore-keys`);
+      (0, import_core.setOutput)("cache-hit", false);
+      (0, import_core.setOutput)("restored-key", "");
+      return;
+    }
+    const isPrimaryKey = validKey === options.key;
+    (0, import_core.setOutput)("restored-key", validKey);
+    const adjustedPathItems = pathItems.map((item) => {
+      const originalRelativePath = path2__namespace.relative(
+        path2__namespace.join(repoBaseCacheDir, options.key),
+        item.cachePath
+      );
+      return {
+        ...item,
+        cachePath: path2__namespace.join(repoBaseCacheDir, validKey, originalRelativePath)
+      };
+    });
+    let cacheHit = false;
+    let cacheCount = 0;
+    let totalPaths = adjustedPathItems.length;
+    for (const pathItem of adjustedPathItems) {
+      const result = await processPathItem(pathItem, options.strategy);
+      if (result)
+        cacheCount++;
+    }
+    cacheHit = cacheCount > 0;
+    log_default.info(
+      `Cache restoration complete. ${cacheCount}/${totalPaths} paths were restored using key: ${validKey}`
+    );
+    log_default.info(`Primary key hit: ${isPrimaryKey}`);
+    (0, import_core.setOutput)("cache-hit", cacheHit);
   } catch (error) {
     console.trace(error);
     (0, import_core.setFailed)(isErrorLike(error) ? error.message : `unknown error: ${error}`);
