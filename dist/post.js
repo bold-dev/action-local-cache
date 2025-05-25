@@ -2896,7 +2896,8 @@ var getVars = () => {
   const cacheDir = path__default.default.join(RUNNER_TOOL_CACHE, GITHUB_REPOSITORY, options.key);
   const pathItems = options.paths.map((pathStr) => {
     const targetPath = path__default.default.resolve(CWD, pathStr);
-    const cachePath = path__default.default.join(cacheDir, pathStr);
+    const relativePath = path__default.default.relative(CWD, targetPath);
+    const cachePath = path__default.default.join(cacheDir, relativePath);
     const { dir: targetDir } = path__default.default.parse(targetPath);
     return {
       cachePath,

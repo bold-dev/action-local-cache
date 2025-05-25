@@ -124,10 +124,6 @@ async function main(): Promise<void> {
       return
     }
 
-    // Set the output for which key was used
-    const isPrimaryKey = validKey === options.key
-    setOutput('restored-key', validKey)
-
     // Adjust the pathItems with the valid key
     const adjustedPathItems = pathItems.map((item) => {
       const originalRelativePath = path.relative(
@@ -141,7 +137,6 @@ async function main(): Promise<void> {
       }
     })
 
-    let cacheHit = false
     let cacheCount = 0
     let totalPaths = adjustedPathItems.length
 
@@ -150,15 +145,32 @@ async function main(): Promise<void> {
       if (result) cacheCount++
     }
 
-    // Consider it a cache hit if at least one path was cached
-    cacheHit = cacheCount > 0
+    // Only consider it a cache hit if at least one path was actually restored
+    const cacheHit = cacheCount > 0
 
-    log.info(
-      `Cache restoration complete. ${cacheCount}/${totalPaths} paths were restored using key: ${validKey}`
-    )
-    log.info(`Primary key hit: ${isPrimaryKey}`)
-
+    // Set outputs based on actual restoration results
     setOutput('cache-hit', cacheHit)
+
+    if (cacheHit) {
+      const isPrimaryKey = validKey === options.key
+      setOutput('restored-key', validKey)
+      log.info(
+        `Cache restoration complete. ${cacheCount}/${totalPaths} paths were restored using key: ${validKey}`
+      )
+      log.info(`Primary key hit: ${isPrimaryKey}`)
+    } else {
+      setOutput('restored-key', '')
+      log.info(
+        `Cache key '${validKey}' found but no files were restored. This may indicate an empty or corrupted cache.`
+      )
+
+      // If fail-on-cache-miss is true and no files were actually restored, fail the workflow
+      if (options.failOnCacheMiss) {
+        throw new Error(
+          `Cache miss: Cache key '${validKey}' found but no files could be restored. The workflow has been configured to fail on cache miss.`
+        )
+      }
+    }
   } catch (error: unknown) {
     console.trace(error)
     setFailed(isErrorLike(error) ? error.message : `unknown error: ${error}`)

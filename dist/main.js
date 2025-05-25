@@ -2916,7 +2916,8 @@ var getVars = () => {
   const cacheDir = path2__namespace.default.join(RUNNER_TOOL_CACHE, GITHUB_REPOSITORY, options.key);
   const pathItems = options.paths.map((pathStr) => {
     const targetPath = path2__namespace.default.resolve(CWD, pathStr);
-    const cachePath = path2__namespace.default.join(cacheDir, pathStr);
+    const relativePath = path2__namespace.default.relative(CWD, targetPath);
+    const cachePath = path2__namespace.default.join(cacheDir, relativePath);
     const { dir: targetDir } = path2__namespace.default.parse(targetPath);
     return {
       cachePath,
@@ -3026,8 +3027,6 @@ async function main() {
       }
       return;
     }
-    const isPrimaryKey = validKey === options.key;
-    (0, import_core.setOutput)("restored-key", validKey);
     const adjustedPathItems = pathItems.map((item) => {
       const originalRelativePath = path2__namespace.relative(
         path2__namespace.join(repoBaseCacheDir, options.key),
@@ -3038,7 +3037,6 @@ async function main() {
         cachePath: path2__namespace.join(repoBaseCacheDir, validKey, originalRelativePath)
       };
     });
-    let cacheHit = false;
     let cacheCount = 0;
     let totalPaths = adjustedPathItems.length;
     for (const pathItem of adjustedPathItems) {
@@ -3046,12 +3044,26 @@ async function main() {
       if (result)
         cacheCount++;
     }
-    cacheHit = cacheCount > 0;
-    log_default.info(
-      `Cache restoration complete. ${cacheCount}/${totalPaths} paths were restored using key: ${validKey}`
-    );
-    log_default.info(`Primary key hit: ${isPrimaryKey}`);
+    const cacheHit = cacheCount > 0;
     (0, import_core.setOutput)("cache-hit", cacheHit);
+    if (cacheHit) {
+      const isPrimaryKey = validKey === options.key;
+      (0, import_core.setOutput)("restored-key", validKey);
+      log_default.info(
+        `Cache restoration complete. ${cacheCount}/${totalPaths} paths were restored using key: ${validKey}`
+      );
+      log_default.info(`Primary key hit: ${isPrimaryKey}`);
+    } else {
+      (0, import_core.setOutput)("restored-key", "");
+      log_default.info(
+        `Cache key '${validKey}' found but no files were restored. This may indicate an empty or corrupted cache.`
+      );
+      if (options.failOnCacheMiss) {
+        throw new Error(
+          `Cache miss: Cache key '${validKey}' found but no files could be restored. The workflow has been configured to fail on cache miss.`
+        );
+      }
+    }
   } catch (error) {
     console.trace(error);
     (0, import_core.setFailed)(isErrorLike(error) ? error.message : `unknown error: ${error}`);

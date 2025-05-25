@@ -59,7 +59,12 @@ export const getVars = (): Vars => {
 
   const pathItems: PathItem[] = options.paths.map((pathStr) => {
     const targetPath = path.resolve(CWD, pathStr)
-    const cachePath = path.join(cacheDir, pathStr)
+
+    // Create a safe cache path by using the relative path from CWD
+    // This prevents issues with absolute paths creating nested directory structures
+    const relativePath = path.relative(CWD, targetPath)
+    const cachePath = path.join(cacheDir, relativePath)
+
     const { dir: targetDir } = path.parse(targetPath)
 
     return {
