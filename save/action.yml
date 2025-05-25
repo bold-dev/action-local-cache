@@ -10,7 +10,7 @@ inputs:
   strategy:
     description: 'Caching mechanism to be used'
     required: false
-    default: 'move'
+    default: 'copy'
   save-always:
     description: 'For documentation only - This parameter is not used in the save action as it runs explicitly'
     required: false

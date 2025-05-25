@@ -13,7 +13,7 @@ inputs:
   strategy:
     description: 'Caching mechanism to be used'
     required: false
-    default: 'move'
+    default: 'copy'
   fail-on-cache-miss:
     description: 'Fail the workflow if the cache cannot be found'
     required: false
