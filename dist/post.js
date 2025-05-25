@@ -2957,7 +2957,19 @@ async function processPathItem(pathItem, cacheDir, strategy) {
 async function post() {
   try {
     const { cacheDir, pathItems, options } = getVars();
-    log_default.info(`Saving cache with primary key: ${options.key}`);
+    const saveAlways = (0, import_core.getInput)("save-always").toLowerCase() === "true";
+    const strategy = (0, import_core.getInput)("strategy") || "move";
+    const jobStatus = process.env.GITHUB_JOB_STATUS || "success";
+    const isJobSuccessful = jobStatus === "success";
+    const shouldSave = strategy === "move" || saveAlways || isJobSuccessful;
+    if (!shouldSave) {
+      log_default.info("Skipping cache save due to job failure and save-always not enabled");
+      return;
+    }
+    if (strategy === "move" && !saveAlways && !isJobSuccessful) {
+      log_default.info("Auto-saving cache due to move strategy (prevents cache loss)");
+    }
+    log_default.info(`Saving cache with primary key: ${options.key} using ${strategy} strategy`);
     await (0, import_io.mkdirP)(cacheDir);
     let processedCount = 0;
     const totalPaths = pathItems.length;
@@ -2970,10 +2982,14 @@ async function post() {
           log_default.info(`Path ${pathItem.targetPath} does not exist, skipping cache`);
         }
       } catch (itemError) {
-        log_default.error(`Error processing ${pathItem.targetPath}: ${isErrorLike(itemError) ? itemError.message : "unknown error"}`);
+        log_default.error(
+          `Error processing ${pathItem.targetPath}: ${isErrorLike(itemError) ? itemError.message : "unknown error"}`
+        );
       }
     }
-    log_default.info(`Cache saving complete. ${processedCount}/${totalPaths} paths were cached with key: ${options.key}`);
+    log_default.info(
+      `Cache saving complete. ${processedCount}/${totalPaths} paths were cached with key: ${options.key}`
+    );
   } catch (error) {
     log_default.trace(error);
     (0, import_core.setFailed)(isErrorLike(error) ? error.message : `unknown error: ${error}`);

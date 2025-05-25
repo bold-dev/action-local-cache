@@ -31,7 +31,7 @@ runs:
   using: 'node16'
   main: 'dist/main.js'
   post: 'dist/post.js'
-  post-if: ${{ inputs.strategy == 'move' || inputs.save-always == 'true' || success() }}
+  post-if: always()
 branding:
   icon: 'archive'
   color: 'blue'
