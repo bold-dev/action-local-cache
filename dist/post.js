@@ -2879,6 +2879,9 @@ var getVars = () => {
   if (!GITHUB_REPOSITORY) {
     throw new TypeError("Expected GITHUB_REPOSITORY environment variable to be defined.");
   }
+  console.log(`DEBUG: RUNNER_TOOL_CACHE = ${RUNNER_TOOL_CACHE}`);
+  console.log(`DEBUG: GITHUB_REPOSITORY = ${GITHUB_REPOSITORY}`);
+  console.log(`DEBUG: CWD = ${CWD}`);
   const options = {
     key: core.getInput("key") || "no-key",
     paths: core.getMultilineInput("path"),
@@ -2894,10 +2897,15 @@ var getVars = () => {
     throw new TypeError(`Unknown strategy ${options.strategy}`);
   }
   const cacheDir = path__default.default.join(RUNNER_TOOL_CACHE, GITHUB_REPOSITORY, options.key);
+  console.log(`DEBUG: cacheDir = ${cacheDir}`);
   const pathItems = options.paths.map((pathStr) => {
     const targetPath = path__default.default.resolve(CWD, pathStr);
     const relativePath = path__default.default.relative(CWD, targetPath);
     const cachePath = path__default.default.join(cacheDir, relativePath);
+    console.log(`DEBUG: pathStr = ${pathStr}`);
+    console.log(`DEBUG: targetPath = ${targetPath}`);
+    console.log(`DEBUG: relativePath = ${relativePath}`);
+    console.log(`DEBUG: cachePath = ${cachePath}`);
     const { dir: targetDir } = path__default.default.parse(targetPath);
     return {
       cachePath,

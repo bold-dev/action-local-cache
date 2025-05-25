@@ -38,6 +38,11 @@ export const getVars = (): Vars => {
     throw new TypeError('Expected GITHUB_REPOSITORY environment variable to be defined.')
   }
 
+  // Debug logging to see what values we're getting
+  console.log(`DEBUG: RUNNER_TOOL_CACHE = ${RUNNER_TOOL_CACHE}`)
+  console.log(`DEBUG: GITHUB_REPOSITORY = ${GITHUB_REPOSITORY}`)
+  console.log(`DEBUG: CWD = ${CWD}`)
+
   const options = {
     key: core.getInput('key') || 'no-key',
     paths: core.getMultilineInput('path'),
@@ -56,6 +61,7 @@ export const getVars = (): Vars => {
   }
 
   const cacheDir = path.join(RUNNER_TOOL_CACHE, GITHUB_REPOSITORY, options.key)
+  console.log(`DEBUG: cacheDir = ${cacheDir}`)
 
   const pathItems: PathItem[] = options.paths.map((pathStr) => {
     const targetPath = path.resolve(CWD, pathStr)
@@ -64,6 +70,11 @@ export const getVars = (): Vars => {
     // This prevents issues with absolute paths creating nested directory structures
     const relativePath = path.relative(CWD, targetPath)
     const cachePath = path.join(cacheDir, relativePath)
+
+    console.log(`DEBUG: pathStr = ${pathStr}`)
+    console.log(`DEBUG: targetPath = ${targetPath}`)
+    console.log(`DEBUG: relativePath = ${relativePath}`)
+    console.log(`DEBUG: cachePath = ${cachePath}`)
 
     const { dir: targetDir } = path.parse(targetPath)
 
