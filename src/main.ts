@@ -98,13 +98,15 @@ async function findValidCacheKey(
 async function main(): Promise<void> {
   try {
     const { pathItems, options } = getVars()
-    const { GITHUB_REPOSITORY, RUNNER_TOOL_CACHE } = process.env
+    const { GITHUB_REPOSITORY, RUNNER_TOOL_CACHE, LOCAL_CACHE_DIR } = process.env
 
-    if (!RUNNER_TOOL_CACHE || !GITHUB_REPOSITORY) {
+    const cacheRoot = LOCAL_CACHE_DIR || RUNNER_TOOL_CACHE
+
+    if (!cacheRoot || !GITHUB_REPOSITORY) {
       throw new Error('Required environment variables are missing')
     }
 
-    const repoBaseCacheDir = path.join(RUNNER_TOOL_CACHE, GITHUB_REPOSITORY)
+    const repoBaseCacheDir = path.join(cacheRoot, GITHUB_REPOSITORY)
 
     // Find a valid cache key to use
     const validKey = await findValidCacheKey(repoBaseCacheDir, options.key, options.restoreKeys)

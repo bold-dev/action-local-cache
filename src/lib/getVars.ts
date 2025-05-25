@@ -2,7 +2,7 @@ import path from 'path'
 
 import * as core from '@actions/core'
 
-const { GITHUB_REPOSITORY, RUNNER_TOOL_CACHE } = process.env
+const { GITHUB_REPOSITORY, RUNNER_TOOL_CACHE, LOCAL_CACHE_DIR } = process.env
 const CWD = process.cwd()
 
 export const STRATEGIES = ['copy-immutable', 'copy', 'move'] as const
@@ -28,9 +28,12 @@ type Vars = {
 }
 
 export const getVars = (): Vars => {
-  if (!RUNNER_TOOL_CACHE) {
+  // Use LOCAL_CACHE_DIR if provided, otherwise fall back to RUNNER_TOOL_CACHE
+  const cacheRoot = LOCAL_CACHE_DIR || RUNNER_TOOL_CACHE
+
+  if (!cacheRoot) {
     throw new TypeError(
-      'Expected RUNNER_TOOL_CACHE environment variable to be defined. This is typically set by GitHub Actions, but may need to be configured in self-hosted runners.'
+      'Expected LOCAL_CACHE_DIR or RUNNER_TOOL_CACHE environment variable to be defined. Set LOCAL_CACHE_DIR to use a custom cache location.'
     )
   }
 
@@ -39,7 +42,9 @@ export const getVars = (): Vars => {
   }
 
   // Debug logging to see what values we're getting
+  console.log(`DEBUG: LOCAL_CACHE_DIR = ${LOCAL_CACHE_DIR || 'not set'}`)
   console.log(`DEBUG: RUNNER_TOOL_CACHE = ${RUNNER_TOOL_CACHE}`)
+  console.log(`DEBUG: Using cache root = ${cacheRoot}`)
   console.log(`DEBUG: GITHUB_REPOSITORY = ${GITHUB_REPOSITORY}`)
   console.log(`DEBUG: CWD = ${CWD}`)
 
@@ -60,7 +65,7 @@ export const getVars = (): Vars => {
     throw new TypeError(`Unknown strategy ${options.strategy}`)
   }
 
-  const cacheDir = path.join(RUNNER_TOOL_CACHE, GITHUB_REPOSITORY, options.key)
+  const cacheDir = path.join(cacheRoot, GITHUB_REPOSITORY, options.key)
   console.log(`DEBUG: cacheDir = ${cacheDir}`)
 
   const pathItems: PathItem[] = options.paths.map((pathStr) => {

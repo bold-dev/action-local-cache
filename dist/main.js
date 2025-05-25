@@ -2887,19 +2887,22 @@ var import_io_util = __toESM(require_io_util());
 
 // src/lib/getVars.ts
 var core = __toESM(require_core());
-var { GITHUB_REPOSITORY, RUNNER_TOOL_CACHE } = process.env;
+var { GITHUB_REPOSITORY, RUNNER_TOOL_CACHE, LOCAL_CACHE_DIR } = process.env;
 var CWD = process.cwd();
 var STRATEGIES = ["copy-immutable", "copy", "move"];
 var getVars = () => {
-  if (!RUNNER_TOOL_CACHE) {
+  const cacheRoot = LOCAL_CACHE_DIR || RUNNER_TOOL_CACHE;
+  if (!cacheRoot) {
     throw new TypeError(
-      "Expected RUNNER_TOOL_CACHE environment variable to be defined. This is typically set by GitHub Actions, but may need to be configured in self-hosted runners."
+      "Expected LOCAL_CACHE_DIR or RUNNER_TOOL_CACHE environment variable to be defined. Set LOCAL_CACHE_DIR to use a custom cache location."
     );
   }
   if (!GITHUB_REPOSITORY) {
     throw new TypeError("Expected GITHUB_REPOSITORY environment variable to be defined.");
   }
+  console.log(`DEBUG: LOCAL_CACHE_DIR = ${LOCAL_CACHE_DIR || "not set"}`);
   console.log(`DEBUG: RUNNER_TOOL_CACHE = ${RUNNER_TOOL_CACHE}`);
+  console.log(`DEBUG: Using cache root = ${cacheRoot}`);
   console.log(`DEBUG: GITHUB_REPOSITORY = ${GITHUB_REPOSITORY}`);
   console.log(`DEBUG: CWD = ${CWD}`);
   const options = {
@@ -2916,7 +2919,7 @@ var getVars = () => {
   if (!Object.values(STRATEGIES).includes(options.strategy)) {
     throw new TypeError(`Unknown strategy ${options.strategy}`);
   }
-  const cacheDir = path2__namespace.default.join(RUNNER_TOOL_CACHE, GITHUB_REPOSITORY, options.key);
+  const cacheDir = path2__namespace.default.join(cacheRoot, GITHUB_REPOSITORY, options.key);
   console.log(`DEBUG: cacheDir = ${cacheDir}`);
   const pathItems = options.paths.map((pathStr) => {
     const targetPath = path2__namespace.default.resolve(CWD, pathStr);
@@ -3018,11 +3021,12 @@ async function findValidCacheKey(baseCacheDir, primaryKey, restoreKeys) {
 async function main() {
   try {
     const { pathItems, options } = getVars();
-    const { GITHUB_REPOSITORY: GITHUB_REPOSITORY2, RUNNER_TOOL_CACHE: RUNNER_TOOL_CACHE2 } = process.env;
-    if (!RUNNER_TOOL_CACHE2 || !GITHUB_REPOSITORY2) {
+    const { GITHUB_REPOSITORY: GITHUB_REPOSITORY2, RUNNER_TOOL_CACHE: RUNNER_TOOL_CACHE2, LOCAL_CACHE_DIR: LOCAL_CACHE_DIR2 } = process.env;
+    const cacheRoot = LOCAL_CACHE_DIR2 || RUNNER_TOOL_CACHE2;
+    if (!cacheRoot || !GITHUB_REPOSITORY2) {
       throw new Error("Required environment variables are missing");
     }
-    const repoBaseCacheDir = path2__namespace.join(RUNNER_TOOL_CACHE2, GITHUB_REPOSITORY2);
+    const repoBaseCacheDir = path2__namespace.join(cacheRoot, GITHUB_REPOSITORY2);
     const validKey = await findValidCacheKey(repoBaseCacheDir, options.key, options.restoreKeys);
     if (!validKey) {
       log_default.info(`No valid cache key found for key: ${options.key} or restore-keys`);
