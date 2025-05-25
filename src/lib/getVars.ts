@@ -6,7 +6,7 @@ const { GITHUB_REPOSITORY, RUNNER_TOOL_CACHE } = process.env
 const CWD = process.cwd()
 
 export const STRATEGIES = ['copy-immutable', 'copy', 'move'] as const
-export type Strategy = typeof STRATEGIES[number]
+export type Strategy = (typeof STRATEGIES)[number]
 
 export type PathItem = {
   cachePath: string
@@ -21,13 +21,17 @@ type Vars = {
     paths: string[]
     restoreKeys: string[]
     strategy: Strategy
+    failOnCacheMiss: boolean
+    saveAlways: boolean
   }
   pathItems: PathItem[]
 }
 
 export const getVars = (): Vars => {
   if (!RUNNER_TOOL_CACHE) {
-    throw new TypeError('Expected RUNNER_TOOL_CACHE environment variable to be defined.')
+    throw new TypeError(
+      'Expected RUNNER_TOOL_CACHE environment variable to be defined. This is typically set by GitHub Actions, but may need to be configured in self-hosted runners.'
+    )
   }
 
   if (!GITHUB_REPOSITORY) {
@@ -39,16 +43,12 @@ export const getVars = (): Vars => {
     paths: core.getMultilineInput('path'),
     restoreKeys: core.getMultilineInput('restore-keys'),
     strategy: core.getInput('strategy') as Strategy,
+    failOnCacheMiss: core.getInput('fail-on-cache-miss').toLowerCase() === 'true',
+    saveAlways: core.getInput('save-always').toLowerCase() === 'true',
   }
 
   if (options.paths.length === 0) {
-    // For backward compatibility, try the singular 'path' input
-    const singlePath = core.getInput('path')
-    if (singlePath) {
-      options.paths = [singlePath]
-    } else {
-      throw new TypeError('path is required but was not provided.')
-    }
+    throw new TypeError('path is required but was not provided.')
   }
 
   if (!Object.values(STRATEGIES).includes(options.strategy)) {
@@ -56,22 +56,22 @@ export const getVars = (): Vars => {
   }
 
   const cacheDir = path.join(RUNNER_TOOL_CACHE, GITHUB_REPOSITORY, options.key)
-  
-  const pathItems: PathItem[] = options.paths.map(pathStr => {
+
+  const pathItems: PathItem[] = options.paths.map((pathStr) => {
     const targetPath = path.resolve(CWD, pathStr)
     const cachePath = path.join(cacheDir, pathStr)
     const { dir: targetDir } = path.parse(targetPath)
-    
+
     return {
       cachePath,
       targetDir,
-      targetPath
+      targetPath,
     }
   })
 
   return {
     cacheDir,
     options,
-    pathItems
+    pathItems,
   }
 }

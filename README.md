@@ -1,67 +1,146 @@
-# Local Cache Github Action
+Local Cache Action
+A GitHub Action to save and restore files across job runs directly in the runner's file system.
+Features
 
-This github action allows you to save and restore files across job runs directly in the runner's file system.
+Cache files and directories locally on the runner
+Support for multiline paths
+Restore-keys functionality for fallback caching
+Multiple caching strategies
+Cross-platform compatibility (Linux, Windows)
+Separate restore and save actions for flexible workflows
+Option to fail workflow if cache is not found
+Option to save cache even when workflow fails
 
-It is intended to be used with runners with persisted storage. Don't use this action if you're using Github-hosted runners or self-hosted runners in ephemeral instances (like docker containers that are launched on demand when a workflow starts and are terminated when the job finishes).
+How It Works
+This action saves and restores cached files to the local file system of the runner using the standard RUNNER_TOOL_CACHE environment variable that GitHub Actions provides. This allows for fast caching without external transfers, making it ideal for self-hosted runners.
+Usage
+Basic Usage (Combined Action)
+yaml- name: Cache dependencies
+  uses: bold-dev/action-local-cache@2
+  with:
+    path: |
+      ./node_modules
+      ./packages/*/node_modules
+    key: ${{ runner.os }}-modules-${{ hashFiles('**/package-lock.json') }}
+    restore-keys: |
+      ${{ runner.os }}-modules-
+Separate Restore and Save Actions
+For more flexibility, you can use the separate restore and save actions:
+Restore
+yaml- name: Restore dependencies from cache
+  id: cache-restore
+  uses: bold-dev/action-local-cache/restore@2
+  with:
+    path: |
+      ./node_modules
+      ./packages/*/node_modules
+    key: ${{ runner.os }}-modules-${{ hashFiles('**/package-lock.json') }}
+    restore-keys: |
+      ${{ runner.os }}-modules-
+Save (after your build steps)
+yaml- name: Save dependencies to cache
+  uses: bold-dev/action-local-cache/save@2
+  with:
+    path: |
+      ./node_modules
+      ./packages/*/node_modules
+    key: ${{ runner.os }}-modules-${{ hashFiles('**/package-lock.json') }}
+Inputs
+path
+Required File path(s) to cache/restore. Can be a single path or multiline paths.
+key
+Required An explicit key for identifying the cache.
+restore-keys
+Optional An ordered list of keys to use for restoring the cache if no cache hit occurred for key.
+strategy
+Optional Caching mechanism to be used. Valid values:
 
+move (default): Move files between cache and target locations
+copy: Copy files, leaving originals in place
+copy-immutable: Copy files, but won't overwrite existing cache files
 
-## Usage
+fail-on-cache-miss
+Optional If set to true, the workflow will fail if no valid cache is found. Default: false
+save-always
+Optional If set to true, the cache will be saved even if the workflow fails. Default: false.
+Note: This option is only used with the combined action, not with the separate save action.
+Outputs
+cache-hit
+A boolean value indicating if the cache was found and restored.
+restored-key
+The key that was used to restore the cache (can be primary key or one of the restore-keys).
+Example Workflows
+Using the Combined Action
+yaml- name: Cache NPM packages
+  id: npm-cache
+  uses: bold-dev/action-local-cache@2
+  with:
+    path: |
+      ./node_modules
+      ./packages/*/node_modules
+    key: npm-${{ runner.os }}-${{ hashFiles('**/package-lock.json') }}
+    restore-keys: |
+      npm-${{ runner.os }}-
+    # Save cache even if the workflow fails
+    save-always: true
 
-```yaml
-# .github/workflows/my-workflow.yml
-jobs:
-  my_job:
+- name: Install dependencies
+  if: steps.npm-cache.outputs.cache-hit != 'true'
+  run: npm ci
+Using Separate Restore/Save Actions
+yaml# Restore cache at the beginning
+- name: Restore NPM packages
+  id: npm-cache
+  uses: bold-dev/action-local-cache/restore@2
+  with:
+    path: |
+      ./node_modules
+      ./packages/*/node_modules
+    key: npm-${{ runner.os }}-${{ hashFiles('**/package-lock.json') }}
+    restore-keys: |
+      npm-${{ runner.os }}-
+    # Fail the workflow if no cache is found
+    fail-on-cache-miss: true
 
-    steps:
-      - uses: actions/checkout@v2
+# Install dependencies if no cache hit
+- name: Install dependencies
+  if: steps.npm-cache.outputs.cache-hit != 'true'
+  run: npm ci
 
-      - name: Local cache for API dependencies
-        id: api-cache
-        uses: MasterworksIO/action-local-cache@2
-        with:
-          path: './api/node_modules/'
-          key: 'api-dependencies-v1'
+# Run build steps
+- name: Build
+  run: npm run build
 
-      - name: Install dependencies
-        run: cd api/ && npm install
-        if: steps.api-cache.outputs.cache-hit != 'true'
+# Save cache at the end
+- name: Save NPM packages
+  uses: bold-dev/action-local-cache/save@2
+  with:
+    path: |
+      ./node_modules
+      ./packages/*/node_modules
+    key: npm-${{ runner.os }}-${{ hashFiles('**/package-lock.json') }}
+Combining Options for Different Use Cases
+Always Save Cache, Regardless of Build Success
+yaml- name: Cache Build Artifacts
+  uses: bold-dev/action-local-cache@2
+  with:
+    path: ./build
+    key: build-${{ github.sha }}
+    save-always: true
+Require Cache Hit (Useful for Deployment Jobs)
+yaml- name: Restore Build Artifacts
+  id: build-cache
+  uses: bold-dev/action-local-cache/restore@2
+  with:
+    path: ./build
+    key: build-${{ github.sha }}
+    fail-on-cache-miss: true
+Self-Hosted Runners
+When using self-hosted runners, ensure the RUNNER_TOOL_CACHE environment variable is set to a writeable directory. This is typically set automatically when setting up a GitHub Actions runner, but you might need to configure it manually in some environments.
+Why Use Local Cache?
 
-      - name: Do your stuff
-        run: npm run build
-```
-
-The `key` param is optional and you can use it to invalidate cache.
-
-### Caching strategy
-
-Define how you want your cache to be used. `move` is the default strategy:
-
-| Usage                      | Description                                                               | Observations                                                                                                          |
-| -------------------------- | ------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------- |
-| `strategy: move`           | Moves cache on job start, moves back on job end                           | Uses the filesystem move syscalls, cache saving and restoration is instant. Does not work across disks/remote shares. |
-| `strategy: copy`           | Recursiverly copies cache on job start, refreshes cache on job end        | Works across disks/remote shares.                                                                                     |
-| `strategy: copy-immutable` | Recursiverly copies cache on job start, does not refresh cache on job end | Works across disks/remote shares. Faster to use if the contents will never change (e.g. installing node dependencies)                                                                                     |
-
-Refer to [push.yaml](.github/workflows/push.yaml) for examples of how to use the above strategies.
-
-# How it works
-
-The first time `action-local-cache` is used in a runner it will take the given path and create a folder structure inside the `$RUNNER_TOOL_CACHE` dir (usually `_work/_tool` inside the runner's workspace), prefixing the user/org name, repo name, and key.
-
-For example, when running the usage example above inside a workflow for the `MasterworksIO/product` repo, this empty folder will be created:
-
-```shell
-~/runner/_work/_tool/MasterworksIO/product/api-dependencies-v1/
-```
-
-Since there's no `api/node_modules/` dir inside, the restore step is skipped and the `cache-hit` output variable will be set to `false`; because of that, the next step which install the dependencies will run.
-
-After the job is successfully completed, `action-local-cache` will take the `api/node_modules` dir generated by the install dependencies step and move/copy it to the previously created dir structure before the runner workspace is wiped.
-
-On a next run under the same runner instance, the cache will be moved/copied back to the working directory and the `cache-output` variable will be set to `true`.
-
-After all steps complete the folder will be moved/copied back to the cache dir and so on.
-
-# LICENSE
-
-MIT, see [LICENSE](./LICENSE)
+Works well with self-hosted runners
+Avoids network transfer times for caching
+Simple directory-based caching mechanism
+Flexible caching strategies
+Similar interface to GitHub's native cache action

@@ -113,6 +113,14 @@ async function main(): Promise<void> {
       log.info(`No valid cache key found for key: ${options.key} or restore-keys`)
       setOutput('cache-hit', false)
       setOutput('restored-key', '')
+
+      // If fail-on-cache-miss is true, fail the workflow
+      if (options.failOnCacheMiss) {
+        throw new Error(
+          `Cache miss: No valid cache found for key '${options.key}' or any restore keys. The workflow has been configured to fail on cache miss.`
+        )
+      }
+
       return
     }
 

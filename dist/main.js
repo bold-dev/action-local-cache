@@ -2892,7 +2892,9 @@ var CWD = process.cwd();
 var STRATEGIES = ["copy-immutable", "copy", "move"];
 var getVars = () => {
   if (!RUNNER_TOOL_CACHE) {
-    throw new TypeError("Expected RUNNER_TOOL_CACHE environment variable to be defined.");
+    throw new TypeError(
+      "Expected RUNNER_TOOL_CACHE environment variable to be defined. This is typically set by GitHub Actions, but may need to be configured in self-hosted runners."
+    );
   }
   if (!GITHUB_REPOSITORY) {
     throw new TypeError("Expected GITHUB_REPOSITORY environment variable to be defined.");
@@ -2901,15 +2903,12 @@ var getVars = () => {
     key: core.getInput("key") || "no-key",
     paths: core.getMultilineInput("path"),
     restoreKeys: core.getMultilineInput("restore-keys"),
-    strategy: core.getInput("strategy")
+    strategy: core.getInput("strategy"),
+    failOnCacheMiss: core.getInput("fail-on-cache-miss").toLowerCase() === "true",
+    saveAlways: core.getInput("save-always").toLowerCase() === "true"
   };
   if (options.paths.length === 0) {
-    const singlePath = core.getInput("path");
-    if (singlePath) {
-      options.paths = [singlePath];
-    } else {
-      throw new TypeError("path is required but was not provided.");
-    }
+    throw new TypeError("path is required but was not provided.");
   }
   if (!Object.values(STRATEGIES).includes(options.strategy)) {
     throw new TypeError(`Unknown strategy ${options.strategy}`);
@@ -3020,6 +3019,11 @@ async function main() {
       log_default.info(`No valid cache key found for key: ${options.key} or restore-keys`);
       (0, import_core.setOutput)("cache-hit", false);
       (0, import_core.setOutput)("restored-key", "");
+      if (options.failOnCacheMiss) {
+        throw new Error(
+          `Cache miss: No valid cache found for key '${options.key}' or any restore keys. The workflow has been configured to fail on cache miss.`
+        );
+      }
       return;
     }
     const isPrimaryKey = validKey === options.key;
