@@ -9916,15 +9916,23 @@ async function main() {
       if (result)
         cacheCount++;
     }
-    const cacheHit = cacheCount > 0;
+    const cacheHit = cacheCount === totalPaths && totalPaths > 0;
     (0, import_core.setOutput)("cache-hit", cacheHit);
     if (cacheHit) {
       const isPrimaryKey = validKey === options.key;
       (0, import_core.setOutput)("restored-key", validKey);
-      log_default.info(
-        `Cache restoration complete. ${cacheCount}/${totalPaths} paths were restored using key: ${validKey}`
-      );
+      log_default.info(`Cache hit: All ${totalPaths} paths were restored using key: ${validKey}`);
       log_default.info(`Primary key hit: ${isPrimaryKey}`);
+    } else if (cacheCount > 0) {
+      (0, import_core.setOutput)("restored-key", "");
+      log_default.info(
+        `Partial cache restoration: ${cacheCount}/${totalPaths} paths were restored, but cache-hit is false because not all paths were found`
+      );
+      if (options.failOnCacheMiss) {
+        throw new Error(
+          `Cache miss: Only ${cacheCount}/${totalPaths} paths could be restored from cache key '${validKey}'. The workflow has been configured to fail on cache miss.`
+        );
+      }
     } else {
       (0, import_core.setOutput)("restored-key", "");
       log_default.info(

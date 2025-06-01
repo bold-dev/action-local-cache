@@ -147,8 +147,8 @@ async function main(): Promise<void> {
       if (result) cacheCount++
     }
 
-    // Only consider it a cache hit if at least one path was actually restored
-    const cacheHit = cacheCount > 0
+    // GitHub's behavior: Only consider it a cache hit if ALL paths are restored
+    const cacheHit = cacheCount === totalPaths && totalPaths > 0
 
     // Set outputs based on actual restoration results
     setOutput('cache-hit', cacheHit)
@@ -156,11 +156,23 @@ async function main(): Promise<void> {
     if (cacheHit) {
       const isPrimaryKey = validKey === options.key
       setOutput('restored-key', validKey)
-      log.info(
-        `Cache restoration complete. ${cacheCount}/${totalPaths} paths were restored using key: ${validKey}`
-      )
+      log.info(`Cache hit: All ${totalPaths} paths were restored using key: ${validKey}`)
       log.info(`Primary key hit: ${isPrimaryKey}`)
+    } else if (cacheCount > 0) {
+      // Partial success - some files restored but not all
+      setOutput('restored-key', '')
+      log.info(
+        `Partial cache restoration: ${cacheCount}/${totalPaths} paths were restored, but cache-hit is false because not all paths were found`
+      )
+
+      // If fail-on-cache-miss is true and not all files were restored, fail the workflow
+      if (options.failOnCacheMiss) {
+        throw new Error(
+          `Cache miss: Only ${cacheCount}/${totalPaths} paths could be restored from cache key '${validKey}'. The workflow has been configured to fail on cache miss.`
+        )
+      }
     } else {
+      // No files restored at all
       setOutput('restored-key', '')
       log.info(
         `Cache key '${validKey}' found but no files were restored. This may indicate an empty or corrupted cache.`
