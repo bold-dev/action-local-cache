@@ -26,6 +26,7 @@ type Vars = {
     saveAlways: boolean
   }
   pathItems: PathItem[]
+  emptyGlobPatterns: string[]
 }
 
 /**
@@ -51,6 +52,7 @@ function expandGlobPath(pathStr: string): string[] {
 
     if (matchedPaths.length === 0) {
       console.warn(`Glob pattern "${pathStr}" matched no files`)
+      // Return an empty array but don't throw - let the caller handle it
       return []
     }
 
@@ -64,7 +66,7 @@ function expandGlobPath(pathStr: string): string[] {
 
 export const getVars = (): Vars => {
   // Use LOCAL_CACHE_DIR if provided, otherwise fall back to RUNNER_TOOL_CACHE
-  const cacheRoot = LOCAL_CACHE_DIR ?? RUNNER_TOOL_CACHE
+  const cacheRoot = LOCAL_CACHE_DIR || RUNNER_TOOL_CACHE
 
   if (!cacheRoot) {
     throw new TypeError(
@@ -77,7 +79,7 @@ export const getVars = (): Vars => {
   }
 
   // Debug logging to see what values we're getting
-  console.log(`DEBUG: LOCAL_CACHE_DIR = ${LOCAL_CACHE_DIR ?? 'not set'}`)
+  console.log(`DEBUG: LOCAL_CACHE_DIR = ${LOCAL_CACHE_DIR || 'not set'}`)
   console.log(`DEBUG: RUNNER_TOOL_CACHE = ${RUNNER_TOOL_CACHE}`)
   console.log(`DEBUG: Using cache root = ${cacheRoot}`)
   console.log(`DEBUG: GITHUB_REPOSITORY = ${GITHUB_REPOSITORY}`)
@@ -104,6 +106,7 @@ export const getVars = (): Vars => {
   console.log(`DEBUG: cacheDir = ${cacheDir}`)
 
   const pathItems: PathItem[] = []
+  const emptyGlobPatterns: string[] = []
 
   // Process each path, expanding globs as needed
   for (const pathStr of options.paths) {
@@ -114,20 +117,28 @@ export const getVars = (): Vars => {
       console.log(`DEBUG: Detected glob pattern: ${pathStr}`)
       const matchedPaths = expandGlobPath(pathStr)
 
-      for (const matchedPath of matchedPaths) {
-        const relativePath = path.relative(CWD, matchedPath)
-        const cachePath = path.join(cacheDir, relativePath)
-        const { dir: targetDir } = path.parse(matchedPath)
+      if (matchedPaths.length === 0) {
+        // Track empty glob patterns for later validation
+        emptyGlobPatterns.push(pathStr)
+        console.log(
+          `DEBUG: Glob pattern "${pathStr}" matched no files - will affect cache-hit calculation`
+        )
+      } else {
+        for (const matchedPath of matchedPaths) {
+          const relativePath = path.relative(CWD, matchedPath)
+          const cachePath = path.join(cacheDir, relativePath)
+          const { dir: targetDir } = path.parse(matchedPath)
 
-        console.log(`DEBUG: Glob match - targetPath = ${matchedPath}`)
-        console.log(`DEBUG: Glob match - relativePath = ${relativePath}`)
-        console.log(`DEBUG: Glob match - cachePath = ${cachePath}`)
+          console.log(`DEBUG: Glob match - targetPath = ${matchedPath}`)
+          console.log(`DEBUG: Glob match - relativePath = ${relativePath}`)
+          console.log(`DEBUG: Glob match - cachePath = ${cachePath}`)
 
-        pathItems.push({
-          cachePath,
-          targetDir,
-          targetPath: matchedPath,
-        })
+          pathItems.push({
+            cachePath,
+            targetDir,
+            targetPath: matchedPath,
+          })
+        }
       }
     } else {
       // Regular path - existing logic
@@ -151,10 +162,15 @@ export const getVars = (): Vars => {
   }
 
   console.log(`DEBUG: Total path items after expansion: ${pathItems.length}`)
+  console.log(`DEBUG: Empty glob patterns: ${emptyGlobPatterns.length}`)
+  if (emptyGlobPatterns.length > 0) {
+    console.log(`DEBUG: Empty glob patterns were: ${emptyGlobPatterns.join(', ')}`)
+  }
 
   return {
     cacheDir,
     options,
     pathItems,
+    emptyGlobPatterns, // Include this for cache-hit calculation
   }
 }

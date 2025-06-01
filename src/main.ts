@@ -97,13 +97,34 @@ async function findValidCacheKey(
 
 async function main(): Promise<void> {
   try {
-    const { pathItems, options } = getVars()
+    const { pathItems, options, emptyGlobPatterns } = getVars()
     const { GITHUB_REPOSITORY, RUNNER_TOOL_CACHE, LOCAL_CACHE_DIR } = process.env
 
     const cacheRoot = LOCAL_CACHE_DIR || RUNNER_TOOL_CACHE
 
     if (!cacheRoot || !GITHUB_REPOSITORY) {
       throw new Error('Required environment variables are missing')
+    }
+
+    // If we have empty glob patterns, this is automatically a cache miss
+    if (emptyGlobPatterns.length > 0) {
+      log.info(
+        `Cache miss: ${
+          emptyGlobPatterns.length
+        } glob pattern(s) matched no files: ${emptyGlobPatterns.join(', ')}`
+      )
+      setOutput('cache-hit', false)
+      setOutput('restored-key', '')
+
+      if (options.failOnCacheMiss) {
+        throw new Error(
+          `Cache miss: Glob patterns matched no files: ${emptyGlobPatterns.join(
+            ', '
+          )}. The workflow has been configured to fail on cache miss.`
+        )
+      }
+
+      return
     }
 
     const repoBaseCacheDir = path.join(cacheRoot, GITHUB_REPOSITORY)
@@ -148,6 +169,7 @@ async function main(): Promise<void> {
     }
 
     // GitHub's behavior: Only consider it a cache hit if ALL paths are restored
+    // Since we already checked for empty globs above, we can use the normal logic here
     const cacheHit = cacheCount === totalPaths && totalPaths > 0
 
     // Set outputs based on actual restoration results

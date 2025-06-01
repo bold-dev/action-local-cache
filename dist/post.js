@@ -9730,7 +9730,7 @@ function expandGlobPath(pathStr) {
   }
 }
 var getVars = () => {
-  const cacheRoot = LOCAL_CACHE_DIR ?? RUNNER_TOOL_CACHE;
+  const cacheRoot = LOCAL_CACHE_DIR || RUNNER_TOOL_CACHE;
   if (!cacheRoot) {
     throw new TypeError(
       "Expected LOCAL_CACHE_DIR or RUNNER_TOOL_CACHE environment variable to be defined. Set LOCAL_CACHE_DIR to use a custom cache location."
@@ -9739,7 +9739,7 @@ var getVars = () => {
   if (!GITHUB_REPOSITORY) {
     throw new TypeError("Expected GITHUB_REPOSITORY environment variable to be defined.");
   }
-  console.log(`DEBUG: LOCAL_CACHE_DIR = ${LOCAL_CACHE_DIR ?? "not set"}`);
+  console.log(`DEBUG: LOCAL_CACHE_DIR = ${LOCAL_CACHE_DIR || "not set"}`);
   console.log(`DEBUG: RUNNER_TOOL_CACHE = ${RUNNER_TOOL_CACHE}`);
   console.log(`DEBUG: Using cache root = ${cacheRoot}`);
   console.log(`DEBUG: GITHUB_REPOSITORY = ${GITHUB_REPOSITORY}`);
@@ -9761,23 +9761,31 @@ var getVars = () => {
   const cacheDir = path2__default.default.join(cacheRoot, GITHUB_REPOSITORY, options.key);
   console.log(`DEBUG: cacheDir = ${cacheDir}`);
   const pathItems = [];
+  const emptyGlobPatterns = [];
   for (const pathStr of options.paths) {
     console.log(`DEBUG: Processing path: ${pathStr}`);
     if (isGlobPattern(pathStr)) {
       console.log(`DEBUG: Detected glob pattern: ${pathStr}`);
       const matchedPaths = expandGlobPath(pathStr);
-      for (const matchedPath of matchedPaths) {
-        const relativePath = path2__default.default.relative(CWD, matchedPath);
-        const cachePath = path2__default.default.join(cacheDir, relativePath);
-        const { dir: targetDir } = path2__default.default.parse(matchedPath);
-        console.log(`DEBUG: Glob match - targetPath = ${matchedPath}`);
-        console.log(`DEBUG: Glob match - relativePath = ${relativePath}`);
-        console.log(`DEBUG: Glob match - cachePath = ${cachePath}`);
-        pathItems.push({
-          cachePath,
-          targetDir,
-          targetPath: matchedPath
-        });
+      if (matchedPaths.length === 0) {
+        emptyGlobPatterns.push(pathStr);
+        console.log(
+          `DEBUG: Glob pattern "${pathStr}" matched no files - will affect cache-hit calculation`
+        );
+      } else {
+        for (const matchedPath of matchedPaths) {
+          const relativePath = path2__default.default.relative(CWD, matchedPath);
+          const cachePath = path2__default.default.join(cacheDir, relativePath);
+          const { dir: targetDir } = path2__default.default.parse(matchedPath);
+          console.log(`DEBUG: Glob match - targetPath = ${matchedPath}`);
+          console.log(`DEBUG: Glob match - relativePath = ${relativePath}`);
+          console.log(`DEBUG: Glob match - cachePath = ${cachePath}`);
+          pathItems.push({
+            cachePath,
+            targetDir,
+            targetPath: matchedPath
+          });
+        }
       }
     } else {
       const targetPath = path2__default.default.resolve(CWD, pathStr);
@@ -9796,10 +9804,16 @@ var getVars = () => {
     }
   }
   console.log(`DEBUG: Total path items after expansion: ${pathItems.length}`);
+  console.log(`DEBUG: Empty glob patterns: ${emptyGlobPatterns.length}`);
+  if (emptyGlobPatterns.length > 0) {
+    console.log(`DEBUG: Empty glob patterns were: ${emptyGlobPatterns.join(", ")}`);
+  }
   return {
     cacheDir,
     options,
-    pathItems
+    pathItems,
+    emptyGlobPatterns
+    // Include this for cache-hit calculation
   };
 };
 
